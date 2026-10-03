@@ -252,7 +252,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                     ? null
                     : () async {
                         await ref.read(socialProvider.notifier).joinChallenge(ch.id);
-                        setState(() => ch.isJoined = true);
+                        if (mounted) setState(() {});
                       },
                 child: Text(ch.isJoined ? 'Joined ✓' : 'Join', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
               ),
@@ -265,7 +265,8 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
 
   Widget _buildPostCard(SocialPostModel post) {
     final dateFormat = DateFormat('h:mm a • MMM d');
-    final isLiked = post.likedBy.contains('usr_demo_777');
+    final currentUserId = ref.watch(userProvider).value?.id;
+    final isLiked = post.isLikedBy(currentUserId);
 
     return Container(
       decoration: BoxDecoration(

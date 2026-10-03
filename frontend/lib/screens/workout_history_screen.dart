@@ -271,12 +271,14 @@ class _WorkoutHistoryScreenState extends ConsumerState<WorkoutHistoryScreen> {
                       notesController.text,
                     );
                 Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    backgroundColor: AppTheme.primary,
-                    content: Text('Log successfully updated!'),
-                  ),
-                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      backgroundColor: AppTheme.primary,
+                      content: Text('Log successfully updated!'),
+                    ),
+                  );
+                }
               },
             ),
           ],

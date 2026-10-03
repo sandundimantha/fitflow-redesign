@@ -22,7 +22,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    final user = ref.read(userProvider);
+    final user = ref.read(userProvider).valueOrNull;
     if (user != null) {
       nameController.text = user.displayName;
       weightController.text = user.weightKg.toString();
@@ -108,7 +108,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(userProvider);
+    final user = ref.watch(userProvider).valueOrNull;
 
     return Scaffold(
       appBar: AppBar(

@@ -14,7 +14,7 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final todayWorkoutAsync = ref.watch(todayWorkoutProvider);
     final nutritionAsync = ref.watch(nutritionProvider);
-    final user = ref.watch(userProvider);
+    final user = ref.watch(userProvider).valueOrNull;
 
     return Scaffold(
       body: RefreshIndicator(
@@ -530,12 +530,14 @@ class DashboardScreen extends ConsumerWidget {
                         ),
                       );
                   Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      backgroundColor: AppTheme.primary,
-                      content: Text('Workout successfully logged! Added to your history.', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-                    ),
-                  );
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        backgroundColor: AppTheme.primary,
+                        content: Text('Workout successfully logged! Added to your history.', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                      ),
+                    );
+                  }
                 },
               ),
               const SizedBox(height: 10),

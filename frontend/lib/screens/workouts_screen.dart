@@ -250,12 +250,14 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
                         ),
                       );
                   Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      backgroundColor: AppTheme.primary,
-                      content: Text('Logged session to your history!'),
-                    ),
-                  );
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        backgroundColor: AppTheme.primary,
+                        content: Text('Logged session to your history!'),
+                      ),
+                    );
+                  }
                 },
               ),
               const SizedBox(height: 10),

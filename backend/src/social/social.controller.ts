@@ -14,7 +14,7 @@ export class SocialController {
   @Get('feed')
   @ApiOperation({ summary: 'Get community feed backed by MongoDB' })
   async getFeed(@Query('page') page?: number, @Query('limit') limit?: number) {
-    return await this.socialService.getFeed(page ? Number(page) : 1, limit ? Number(limit) : 20);
+    return await this.socialService.getFeed(page ? Number(page) : undefined, limit ? Number(limit) : undefined);
   }
 
   @Post('posts')
@@ -43,14 +43,14 @@ export class SocialController {
   }
 
   @Get('challenges')
-  @ApiOperation({ summary: 'List available community fitness challenges' })
-  getChallenges() {
-    return this.socialService.getChallenges();
+  @ApiOperation({ summary: 'List available community fitness challenges with user join status' })
+  async getChallenges(@CurrentUser() user: AuthUser) {
+    return await this.socialService.getChallenges(user.id);
   }
 
   @Post('challenges/:id/join')
   @ApiOperation({ summary: 'Join a community fitness challenge' })
-  joinChallenge(@Param('id') id: string) {
-    return this.socialService.joinChallenge(id);
+  async joinChallenge(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return await this.socialService.joinChallenge(id, user.id);
   }
 }

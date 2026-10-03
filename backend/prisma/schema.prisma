@@ -8,23 +8,25 @@ generator client {
 }
 
 model User {
-  id              String         @id @default(uuid())
-  firebaseUid     String         @unique
+  id              String           @id @default(uuid())
+  firebaseUid     String           @unique
   email           String?
   phone           String?
   displayName     String
   avatarUrl       String?
-  fitnessGoal     String         @default("muscle_gain")
-  experienceLevel String         @default("intermediate")
+  fitnessGoal     String           @default("muscle_gain")
+  experienceLevel String           @default("intermediate")
   weightKg        Float?
   heightCm        Float?
-  language        String         @default("en")
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  language        String           @default("en")
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 
   workoutLogs     WorkoutLog[]
   nutritionLogs   NutritionLog[]
   aiPlans         AiWorkoutPlan[]
+  notifications   Notification[]
+  userChallenges  UserChallenge[]
 }
 
 model Workout {
@@ -56,6 +58,16 @@ model WorkoutLog {
   user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model FoodItem {
+  id             String       @id @default(uuid())
+  name           String       @unique
+  defaultServing String
+  calories       Int
+  proteinGrams   Float
+  carbsGrams     Float
+  fatGrams       Float
+}
+
 model NutritionLog {
   id            String       @id @default(uuid())
   userId        String
@@ -85,4 +97,41 @@ model AiWorkoutPlan {
   createdAt       DateTime     @default(now())
 
   user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String       @id @default(uuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  isRead    Boolean      @default(false)
+  createdAt DateTime     @default(now())
+
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Challenge {
+  id                String          @id @default(uuid())
+  title             String
+  category          String
+  participantsCount Int             @default(0)
+  daysRemaining     Int
+  imageUrl          String
+  description       String
+  createdAt         DateTime        @default(now())
+
+  userChallenges    UserChallenge[]
+}
+
+model UserChallenge {
+  id          String       @id @default(uuid())
+  userId      String
+  challengeId String
+  joinedAt    DateTime     @default(now())
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge   Challenge    @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, challengeId])
 }

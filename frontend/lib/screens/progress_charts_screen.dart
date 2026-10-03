@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../theme/app_theme.dart';
 import '../providers/app_providers.dart';
-import '../models/workout_model.dart';
 
 class ProgressChartsScreen extends ConsumerWidget {
   const ProgressChartsScreen({super.key});

@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting FitFlow Database Seeding...');
+  console.log('🌱 Starting FitFlow Comprehensive Database Seeding...');
 
   // 1. Seed Demo User
   const user = await prisma.user.upsert({
@@ -170,7 +170,25 @@ async function main() {
   });
   console.log(`✅ Seeded 6 Workout Logs for weekly comparison charts`);
 
-  // 4. Seed Nutrition Logs for Today
+  // 4. Seed Food Items Catalog
+  await prisma.foodItem.deleteMany({});
+  await prisma.foodItem.createMany({
+    data: [
+      { name: 'Oatmeal with Blueberries & Honey', defaultServing: '1 bowl (250g)', calories: 280, proteinGrams: 9, carbsGrams: 52, fatGrams: 4.5 },
+      { name: 'Grilled Chicken Breast', defaultServing: '1 breast (200g)', calories: 330, proteinGrams: 62, carbsGrams: 0, fatGrams: 7 },
+      { name: 'Greek Yogurt (Non-fat)', defaultServing: '1 cup (170g)', calories: 100, proteinGrams: 18, carbsGrams: 6, fatGrams: 0 },
+      { name: 'Brown Rice with Steamed Broccoli', defaultServing: '1 cup (195g)', calories: 230, proteinGrams: 5.5, carbsGrams: 48, fatGrams: 2 },
+      { name: 'Salmon Fillet (Pan-seared)', defaultServing: '1 fillet (180g)', calories: 370, proteinGrams: 36, carbsGrams: 0, fatGrams: 23 },
+      { name: 'Avocado Toast on Sourdough', defaultServing: '2 slices', calories: 340, proteinGrams: 8, carbsGrams: 36, fatGrams: 18 },
+      { name: 'Whey Protein Shake', defaultServing: '1 scoop with water', calories: 130, proteinGrams: 25, carbsGrams: 3, fatGrams: 1.5 },
+      { name: 'Scrambled Eggs (3 whole)', defaultServing: '3 eggs', calories: 220, proteinGrams: 18, carbsGrams: 1.5, fatGrams: 15 },
+      { name: 'Banana & Peanut Butter Smoothie', defaultServing: '1 large cup (350ml)', calories: 410, proteinGrams: 14, carbsGrams: 56, fatGrams: 16 },
+      { name: 'Quinoa Bowl with Roasted Veggies', defaultServing: '1 bowl (300g)', calories: 310, proteinGrams: 11, carbsGrams: 54, fatGrams: 6 },
+    ],
+  });
+  console.log(`✅ Seeded FoodItem catalog`);
+
+  // 5. Seed Nutrition Logs for Today
   await prisma.nutritionLog.deleteMany({});
   await prisma.nutritionLog.createMany({
     data: [
@@ -189,20 +207,87 @@ async function main() {
       {
         userId: user.id,
         mealType: 'lunch',
-        foodName: 'Grilled Chicken Breast & Brown Rice',
+        foodName: 'Grilled Chicken Breast',
         servingAmount: 1,
         servingUnit: 'plate',
-        calories: 560,
-        proteinGrams: 67.5,
-        carbsGrams: 48,
-        fatGrams: 9,
+        calories: 330,
+        proteinGrams: 62,
+        carbsGrams: 0,
+        fatGrams: 7,
         loggedAt: new Date(now.getTime() - 1 * 3600 * 1000),
       },
     ],
   });
   console.log(`✅ Seeded Today's Nutrition Meals`);
 
-  // 5. Seed MongoDB Social Feed Posts (if Mongo is reachable)
+  // 6. Seed Notifications
+  await prisma.notification.deleteMany({});
+  await prisma.notification.createMany({
+    data: [
+      {
+        userId: user.id,
+        type: 'expert_reply',
+        title: 'Coach Marcus Replied',
+        message: 'Great tempo on your goblet squats! Focus on keeping your elbows tucked next set.',
+        isRead: false,
+        createdAt: new Date(Date.now() - 15 * 60 * 1000),
+      },
+      {
+        userId: user.id,
+        type: 'alert',
+        title: 'Hydration Target Warning',
+        message: 'You have only logged 1.2L of water today. Aim for at least 2.5L to support recovery.',
+        isRead: false,
+        createdAt: new Date(Date.now() - 2 * 3600 * 1000),
+      },
+      {
+        userId: user.id,
+        type: 'confirmation',
+        title: 'Challenge Milestone Confirmed',
+        message: 'Day 12 of Spring 30-Day Lean Muscle Protocol successfully verified. +50 XP awarded!',
+        isRead: true,
+        createdAt: new Date(Date.now() - 5 * 3600 * 1000),
+      },
+    ],
+  });
+  console.log(`✅ Seeded Notifications`);
+
+  // 7. Seed Challenges
+  await prisma.challenge.deleteMany({});
+  const ch1 = await prisma.challenge.create({
+    data: {
+      id: 'ch_01',
+      title: 'Spring 30-Day Lean Muscle Protocol',
+      category: 'Hypertrophy',
+      participantsCount: 1420,
+      daysRemaining: 18,
+      imageUrl: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=600',
+      description: 'Commit to 4 strength workouts per week, hitting minimum 1.6g/kg protein daily.',
+    },
+  });
+
+  await prisma.challenge.create({
+    data: {
+      id: 'ch_02',
+      title: '10,000 Daily Steps Consistency Quest',
+      category: 'Endurance',
+      participantsCount: 3840,
+      daysRemaining: 12,
+      imageUrl: 'https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=600',
+      description: 'Keep your daily active movement streak alive and log every step for cardiovascular longevity.',
+    },
+  });
+
+  await prisma.userChallenge.deleteMany({});
+  await prisma.userChallenge.create({
+    data: {
+      userId: user.id,
+      challengeId: ch1.id,
+    },
+  });
+  console.log(`✅ Seeded Challenges & UserChallenge participation`);
+
+  // 8. Seed MongoDB Social Feed Posts (if Mongo is reachable)
   try {
     const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/fitflow_mongo';
     await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 2000 });
@@ -247,10 +332,10 @@ async function main() {
     await mongoose.disconnect();
     console.log(`✅ Seeded MongoDB Social Feed Posts`);
   } catch (err) {
-    console.log(`ℹ️  MongoDB not reachable during seed (${err.message}). In-memory feed fallback will be used.`);
+    console.log(`ℹ️  MongoDB not reachable during seed (${err.message}).`);
   }
 
-  console.log('🎉 FitFlow database seeding completed successfully!');
+  console.log('🎉 FitFlow comprehensive database seeding completed successfully!');
 }
 
 main()

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'api_service.dart';
+import '../core/constants/api_constants.dart';
 
 class SocketService {
   static final SocketService _instance = SocketService._internal();
@@ -17,7 +17,7 @@ class SocketService {
 
   void connect() {
     try {
-      final wsUrl = ApiService.baseUrl.replaceFirst('http', 'ws').replaceFirst('/api', '/ws/feed');
+      final wsUrl = ApiConstants.websocketUrl;
       _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
 
       _channel?.stream.listen(

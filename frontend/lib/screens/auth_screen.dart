@@ -21,9 +21,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   void _handleAuth() async {
     setState(() => isLoading = true);
     await Future.delayed(const Duration(milliseconds: 600));
-    ref.read(apiServiceProvider).setAuth(
+    ref.read(apiClientProvider).setAuthCredentials(
           token: 'dev-token-xyz',
-          devUserId: 'usr_demo_777',
+          userId: 'usr_demo_777',
         );
     await ref.read(userProvider.notifier).loadUser();
     if (mounted) {

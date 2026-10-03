@@ -10,20 +10,24 @@ class NotificationsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notifications = ref.watch(notificationsProvider);
+    final notificationsAsync = ref.watch(notificationsProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Notifications', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
       ),
-      body: notifications.isEmpty
-          ? const Center(child: Text('No new notifications.'))
-          : ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: notifications.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (ctx, idx) => _buildNotificationCard(context, ref, notifications[idx]),
-            ),
+      body: notificationsAsync.when(
+        data: (notifications) => notifications.isEmpty
+            ? const Center(child: Text('No new notifications.'))
+            : ListView.separated(
+                padding: const EdgeInsets.all(16),
+                itemCount: notifications.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (ctx, idx) => _buildNotificationCard(context, ref, notifications[idx]),
+              ),
+        loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.primary)),
+        error: (e, _) => Center(child: Text('Error loading notifications: $e')),
+      ),
     );
   }
 

@@ -1,8 +1,10 @@
-import { Injectable, Logger, Optional } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { SocialPost, PostDocument } from './schemas/post.schema';
 import { RedisService } from '../redis/redis.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { SYSTEM_CONSTANTS } from '../common/constants/system.constants';
 
 export interface CreatePostDto {
   content: string;
@@ -11,112 +13,39 @@ export interface CreatePostDto {
   challengeName?: string;
 }
 
-const DEFAULT_CHALLENGES = [
-  {
-    id: 'ch_01',
-    title: 'Spring 30-Day Lean Muscle Protocol',
-    category: 'Hypertrophy',
-    participantsCount: 1420,
-    daysRemaining: 18,
-    imageUrl: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=600',
-    description: 'Commit to 4 strength workouts per week, hitting minimum 1.6g/kg protein daily.',
-  },
-  {
-    id: 'ch_02',
-    title: '10,000 Daily Steps Consistency Quest',
-    category: 'Endurance',
-    participantsCount: 3840,
-    daysRemaining: 12,
-    imageUrl: 'https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=600',
-    description: 'Keep your daily active movement streak alive and log every step for cardiovascular longevity.',
-  },
-  {
-    id: 'ch_03',
-    title: 'Zero Sugar & Macro Cleanse',
-    category: 'Nutrition',
-    participantsCount: 980,
-    daysRemaining: 5,
-    imageUrl: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600',
-    description: 'Eliminate refined sugars and hit your fiber targets every single day.',
-  },
-];
-
 @Injectable()
 export class SocialService {
   private readonly logger = new Logger(SocialService.name);
-  private inMemoryPosts: any[] = [];
-  private joinedChallenges = new Set<string>(['ch_01']);
 
   constructor(
-    @Optional()
     @InjectModel(SocialPost.name)
-    private readonly postModel: Model<PostDocument> | null,
+    private readonly postModel: Model<PostDocument>,
     private readonly redis: RedisService,
-  ) {
-    // Seed initial social feed
-    this.inMemoryPosts.push(
-      {
-        id: 'post_01',
-        userId: 'usr_sarah_11',
-        authorName: 'Sarah Jenkins',
-        authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-        content: 'Crushed Day 12 of the Spring Lean Muscle challenge! Hit a new 5-rep PR on Goblet Squats (28kg). The AI progressive plan is genuinely working 🔥💪',
-        mediaUrl: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800',
-        challengeId: 'ch_01',
-        challengeName: 'Spring 30-Day Lean Muscle Protocol',
-        likesCount: 24,
-        likedBy: ['usr_demo_777', 'usr_mike_99'],
-        comments: [
-          {
-            id: 'c_1',
-            userId: 'usr_mike_99',
-            authorName: 'Mike Chen',
-            authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-            text: 'Huge work Sarah! Form looked clean!',
-            createdAt: new Date(Date.now() - 3600000),
-          },
-        ],
-        createdAt: new Date(Date.now() - 7200000),
-      },
-      {
-        id: 'post_02',
-        userId: 'usr_david_22',
-        authorName: 'David Miller',
-        authorAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
-        content: 'Hit 12,400 steps today before 6 PM. Zone 2 recovery walk completed around the park. Keep moving team! 👟🌿',
-        challengeId: 'ch_02',
-        challengeName: '10,000 Daily Steps Consistency Quest',
-        likesCount: 19,
-        likedBy: [],
-        comments: [],
-        createdAt: new Date(Date.now() - 14400000),
-      }
-    );
-  }
+    private readonly prisma: PrismaService,
+  ) {}
 
-  async getFeed(page = 1, limit = 20) {
-    if (this.postModel) {
-      try {
-        const posts = await this.postModel
-          .find()
-          .sort({ createdAt: -1 })
-          .skip((page - 1) * limit)
-          .limit(limit)
-          .exec();
-        if (posts.length > 0) return posts;
-      } catch (e) {
-        this.logger.warn(`MongoDB query failed: ${e.message}. Using in-memory feed fallback.`);
-      }
+  async getFeed(
+    page: number = SYSTEM_CONSTANTS.PAGINATION.DEFAULT_PAGE,
+    limit: number = SYSTEM_CONSTANTS.PAGINATION.DEFAULT_LIMIT,
+  ) {
+    try {
+      return await this.postModel
+        .find()
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .exec();
+    } catch (e) {
+      this.logger.warn(`Failed to fetch social feed from MongoDB: ${e.message}`);
+      return [];
     }
-    return this.inMemoryPosts;
   }
 
   async createPost(user: any, dto: CreatePostDto) {
     const postPayload = {
-      id: `post_${Date.now()}`,
       userId: user.id,
       authorName: user.displayName || 'FitFlow Athlete',
-      authorAvatar: user.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+      authorAvatar: user.avatarUrl || null,
       content: dto.content,
       mediaUrl: dto.mediaUrl || null,
       challengeId: dto.challengeId || null,
@@ -124,37 +53,30 @@ export class SocialService {
       likesCount: 0,
       likedBy: [],
       comments: [],
-      createdAt: new Date(),
     };
 
-    if (this.postModel) {
-      try {
-        const created = await this.postModel.create(postPayload);
-        postPayload.id = created._id.toString();
-      } catch (e) {
-        this.logger.warn(`Could not save post to MongoDB: ${e.message}`);
-      }
-    }
-
-    this.inMemoryPosts.unshift(postPayload);
-
-    // 1. Publish to Redis Pub/Sub for real-time WebSocket distribution
+    let createdPost;
     try {
-      await this.redis.publish('social_feed', JSON.stringify({ type: 'NEW_POST', data: postPayload }));
-      this.logger.log(`Published new post to Redis channel social_feed`);
+      createdPost = await this.postModel.create(postPayload);
     } catch (e) {
-      this.logger.warn(`Redis publish failed: ${e.message}`);
+      this.logger.error(`Error saving post to MongoDB: ${e.message}`);
+      throw e;
     }
 
-    // 2. Dispatch FCM Push Notification for offline followers (stubbed integration)
-    this.sendFcmPushToOfflineFollowers(user, postPayload);
+    // Publish to Redis Pub/Sub for WebSocket distribution
+    await this.redis.publish(
+      SYSTEM_CONSTANTS.REDIS_CHANNELS.SOCIAL_FEED,
+      JSON.stringify({ type: 'NEW_POST', data: createdPost }),
+    );
 
-    return postPayload;
+    return createdPost;
   }
 
   async toggleLike(postId: string, userId: string) {
-    const post = this.inMemoryPosts.find((p) => p.id === postId || p._id?.toString() === postId);
-    if (!post) return { success: false };
+    const post = await this.postModel.findById(postId);
+    if (!post) {
+      throw new NotFoundException(`Post with ID ${postId} not found`);
+    }
 
     const idx = post.likedBy.indexOf(userId);
     if (idx === -1) {
@@ -165,42 +87,91 @@ export class SocialService {
       post.likesCount = Math.max(0, post.likesCount - 1);
     }
 
-    await this.redis.publish('social_feed', JSON.stringify({ type: 'POST_LIKED', data: post }));
+    await post.save();
+
+    await this.redis.publish(
+      SYSTEM_CONSTANTS.REDIS_CHANNELS.SOCIAL_FEED,
+      JSON.stringify({ type: 'POST_LIKED', data: post }),
+    );
+
     return post;
   }
 
   async addComment(postId: string, user: any, text: string) {
-    const post = this.inMemoryPosts.find((p) => p.id === postId || p._id?.toString() === postId);
-    if (!post) return null;
+    const post = await this.postModel.findById(postId);
+    if (!post) {
+      throw new NotFoundException(`Post with ID ${postId} not found`);
+    }
 
     const comment = {
       id: `c_${Date.now()}`,
       userId: user.id,
       authorName: user.displayName || 'FitFlow Athlete',
-      authorAvatar: user.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+      authorAvatar: user.avatarUrl || null,
       text,
       createdAt: new Date(),
     };
 
     post.comments.push(comment);
-    await this.redis.publish('social_feed', JSON.stringify({ type: 'NEW_COMMENT', data: { postId, comment } }));
+    await post.save();
+
+    await this.redis.publish(
+      SYSTEM_CONSTANTS.REDIS_CHANNELS.SOCIAL_FEED,
+      JSON.stringify({ type: 'NEW_COMMENT', data: { postId, comment } }),
+    );
+
     return comment;
   }
 
-  getChallenges() {
-    return DEFAULT_CHALLENGES.map((ch) => ({
-      ...ch,
-      isJoined: this.joinedChallenges.has(ch.id),
+  async getChallenges(userId: string) {
+    const challenges = await this.prisma.challenge.findMany({
+      include: {
+        userChallenges: {
+          where: { userId },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return challenges.map((ch) => ({
+      id: ch.id,
+      title: ch.title,
+      category: ch.category,
+      participantsCount: ch.participantsCount,
+      daysRemaining: ch.daysRemaining,
+      imageUrl: ch.imageUrl,
+      description: ch.description,
+      isJoined: ch.userChallenges.length > 0,
     }));
   }
 
-  joinChallenge(challengeId: string) {
-    this.joinedChallenges.add(challengeId);
-    return { success: true, challengeId, isJoined: true };
-  }
+  async joinChallenge(challengeId: string, userId: string) {
+    const challenge = await this.prisma.challenge.findUnique({
+      where: { id: challengeId },
+    });
+    if (!challenge) {
+      throw new NotFoundException(`Challenge with ID ${challengeId} not found`);
+    }
 
-  private sendFcmPushToOfflineFollowers(author: any, post: any) {
-    // In production, uses firebase-admin.messaging().sendEachForMulticast()
-    this.logger.log(`[FCM Mock] Push notification dispatched: "${author.displayName} posted an update in ${post.challengeName || 'FitFlow Community'}"`);
+    await this.prisma.userChallenge.upsert({
+      where: {
+        userId_challengeId: {
+          userId,
+          challengeId,
+        },
+      },
+      update: {},
+      create: {
+        userId,
+        challengeId,
+      },
+    });
+
+    await this.prisma.challenge.update({
+      where: { id: challengeId },
+      data: { participantsCount: { increment: 1 } },
+    });
+
+    return { success: true, challengeId, isJoined: true };
   }
 }

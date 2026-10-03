@@ -55,5 +55,5 @@ frontend/.idea/
 frontend/pubspec.lock
 
 # Docker volumes / local data
-data/
-minio_data/
+/data/
+/minio_data/

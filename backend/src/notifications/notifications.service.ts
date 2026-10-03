@@ -1,69 +1,28 @@
-import { Injectable } from '@nestjs/common';
-
-export interface NotificationItem {
-  id: string;
-  type: 'expert_reply' | 'alert' | 'confirmation';
-  title: string;
-  message: string;
-  timestamp: string;
-  isRead: boolean;
-  metadata?: Record<string, any>;
-}
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class NotificationsService {
-  private notifications: NotificationItem[] = [
-    {
-      id: 'notif_01',
-      type: 'expert_reply',
-      title: 'Coach Marcus Replied',
-      message: 'Great tempo on your goblet squats! Focus on keeping your elbows tucked next set.',
-      timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-      isRead: false,
-      metadata: { coachId: 'c_marcus', workoutId: 'wk_today_01' },
-    },
-    {
-      id: 'notif_02',
-      type: 'alert',
-      title: 'Hydration Target Warning',
-      message: 'You have only logged 1.2L of water today. Aim for at least 2.5L to support recovery.',
-      timestamp: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
-      isRead: false,
-    },
-    {
-      id: 'notif_03',
-      type: 'confirmation',
-      title: 'Challenge Milestone Confirmed',
-      message: 'Day 12 of Spring 30-Day Lean Muscle Protocol successfully verified. +50 XP awarded!',
-      timestamp: new Date(Date.now() - 5 * 3600 * 1000).toISOString(),
-      isRead: true,
-      metadata: { challengeId: 'ch_01' },
-    },
-    {
-      id: 'notif_04',
-      type: 'alert',
-      title: 'Rest Day Recommended',
-      message: 'Your muscle fatigue score is high after 3 consecutive strength sessions. Take active rest.',
-      timestamp: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
-      isRead: true,
-    },
-    {
-      id: 'notif_05',
-      type: 'confirmation',
-      title: 'Meal Log Saved',
-      message: 'Logged 67g protein from lunch. You are 72% toward your daily protein goal.',
-      timestamp: new Date(Date.now() - 28 * 3600 * 1000).toISOString(),
-      isRead: true,
-    },
-  ];
+  constructor(private readonly prisma: PrismaService) {}
 
-  findAll(userId: string): NotificationItem[] {
-    return this.notifications;
+  async findAll(userId: string) {
+    return await this.prisma.notification.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
-  markAsRead(id: string) {
-    const item = this.notifications.find((n) => n.id === id);
-    if (item) item.isRead = true;
-    return { success: true };
+  async markAsRead(id: string, userId: string) {
+    const existing = await this.prisma.notification.findFirst({
+      where: { id, userId },
+    });
+    if (!existing) {
+      throw new NotFoundException(`Notification with ID ${id} not found`);
+    }
+
+    return await this.prisma.notification.update({
+      where: { id },
+      data: { isRead: true },
+    });
   }
 }

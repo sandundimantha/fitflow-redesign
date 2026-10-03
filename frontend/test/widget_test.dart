@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fitflow_app/main.dart';
@@ -43,6 +42,15 @@ class _TestHttpClient implements HttpClient {
 }
 
 class _TestHttpClientRequest implements HttpClientRequest {
+  @override
+  bool followRedirects = true;
+
+  @override
+  int maxRedirects = 5;
+
+  @override
+  int contentLength = 0;
+
   @override
   final HttpHeaders headers = _TestHttpHeaders();
 

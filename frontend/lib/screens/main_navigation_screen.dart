@@ -18,10 +18,10 @@ class MainNavigationScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentIndex = ref.watch(navigationIndexProvider);
-    final notifications = ref.watch(notificationsProvider);
-    final unreadCount = notifications.where((n) => !n.isRead).length;
+    final notificationsAsync = ref.watch(notificationsProvider);
+    final unreadCount = notificationsAsync.valueOrNull?.where((n) => !n.isRead).length ?? 0;
 
-    final screens = const [
+    const screens = [
       DashboardScreen(),
       WorkoutsScreen(),
       AiPlanScreen(),

@@ -1,0 +1,174 @@
+{
+  "exercises": [
+    {
+      "name": "Dumbbell Bench Press",
+      "muscle": "Chest",
+      "equipment": "dumbbells",
+      "goals": ["muscle_gain", "strength", "functional_fitness"],
+      "baseSets": 4,
+      "baseReps": "8-12",
+      "restSeconds": 90,
+      "defaultRationale": "High-recruitment compound exercise targeting pectorals and triceps with unilateral stability."
+    },
+    {
+      "name": "Push-ups",
+      "muscle": "Chest / Core",
+      "equipment": "bodyweight",
+      "goals": ["muscle_gain", "weight_loss", "endurance", "functional_fitness"],
+      "baseSets": 3,
+      "baseReps": "15-20",
+      "restSeconds": 60,
+      "defaultRationale": "Foundational closed-kinetic chain pressing movement that activates the anterior chest while reinforcing core stabilization."
+    },
+    {
+      "name": "Barbell Bench Press",
+      "muscle": "Chest",
+      "equipment": "barbell",
+      "goals": ["muscle_gain", "strength"],
+      "baseSets": 4,
+      "baseReps": "6-10",
+      "restSeconds": 120,
+      "defaultRationale": "Primary maximum-load horizontal press for progressive chest overload and power."
+    },
+    {
+      "name": "Dumbbell Bent-Over Row",
+      "muscle": "Upper Back / Lats",
+      "equipment": "dumbbells",
+      "goals": ["muscle_gain", "weight_loss", "functional_fitness"],
+      "baseSets": 3,
+      "baseReps": "10-12",
+      "restSeconds": 75,
+      "defaultRationale": "Essential horizontal pull that counters forward-rolled posture and reinforces upper back thickness."
+    },
+    {
+      "name": "Pull-ups / Chin-ups",
+      "muscle": "Lats / Biceps",
+      "equipment": "pullup_bar",
+      "goals": ["muscle_gain", "strength", "functional_fitness"],
+      "baseSets": 3,
+      "baseReps": "6-10",
+      "restSeconds": 90,
+      "defaultRationale": "Premier vertical pulling motion to develop latissimus dorsi width and functional relative body strength."
+    },
+    {
+      "name": "Inverted Bodyweight Row",
+      "muscle": "Mid Back / Biceps",
+      "equipment": "bodyweight",
+      "goals": ["weight_loss", "endurance", "functional_fitness"],
+      "baseSets": 3,
+      "baseReps": "12-15",
+      "restSeconds": 60,
+      "defaultRationale": "Accessible bodyweight pulling variation to strengthen scapular retractors without heavy spinal compression."
+    },
+    {
+      "name": "Goblet Squats",
+      "muscle": "Quadriceps / Glutes",
+      "equipment": "dumbbells",
+      "goals": ["muscle_gain", "weight_loss", "functional_fitness"],
+      "baseSets": 4,
+      "baseReps": "10-12",
+      "restSeconds": 90,
+      "defaultRationale": "Anterior load placement reinforces an upright torso while building quad hypertrophy and hip mobility."
+    },
+    {
+      "name": "Barbell Back Squat",
+      "muscle": "Quadriceps / Glutes / Hamstrings",
+      "equipment": "barbell",
+      "goals": ["muscle_gain", "strength"],
+      "baseSets": 4,
+      "baseReps": "6-8",
+      "restSeconds": 120,
+      "defaultRationale": "Gold standard multi-joint lower body movement for systemic strength and hormonal adaptation."
+    },
+    {
+      "name": "Bodyweight Jump Squats",
+      "muscle": "Quadriceps / Calves",
+      "equipment": "bodyweight",
+      "goals": ["weight_loss", "endurance"],
+      "baseSets": 4,
+      "baseReps": "15-20",
+      "restSeconds": 45,
+      "defaultRationale": "Explosive triple-extension plyometric that spikes heart rate and accelerates caloric expenditure."
+    },
+    {
+      "name": "Romanian Deadlift (Dumbbell)",
+      "muscle": "Hamstrings / Glutes",
+      "equipment": "dumbbells",
+      "goals": ["muscle_gain", "functional_fitness"],
+      "baseSets": 3,
+      "baseReps": "10-12",
+      "restSeconds": 90,
+      "defaultRationale": "Hip-hinge pattern prioritizing hamstring eccentric stretch and glute recruitment without excessive lower back shear."
+    },
+    {
+      "name": "Dumbbell Overhead Shoulder Press",
+      "muscle": "Deltoids / Triceps",
+      "equipment": "dumbbells",
+      "goals": ["muscle_gain", "strength", "functional_fitness"],
+      "baseSets": 3,
+      "baseReps": "8-12",
+      "restSeconds": 75,
+      "defaultRationale": "Compound vertical press developing balanced front and lateral deltoid heads."
+    },
+    {
+      "name": "Pike Push-ups",
+      "muscle": "Shoulders / Upper Chest",
+      "equipment": "bodyweight",
+      "goals": ["muscle_gain", "functional_fitness", "endurance"],
+      "baseSets": 3,
+      "baseReps": "10-12",
+      "restSeconds": 60,
+      "defaultRationale": "Bodyweight overhead pressing progression to safely load anterior delts without equipment."
+    },
+    {
+      "name": "Dumbbell Bicep Curls",
+      "muscle": "Biceps",
+      "equipment": "dumbbells",
+      "goals": ["muscle_gain"],
+      "baseSets": 3,
+      "baseReps": "12-15",
+      "restSeconds": 60,
+      "defaultRationale": "Direct isolation for elbow flexor hypertrophy and tendon resilience."
+    },
+    {
+      "name": "Dumbbell Overhead Tricep Extension",
+      "muscle": "Triceps",
+      "equipment": "dumbbells",
+      "goals": ["muscle_gain"],
+      "baseSets": 3,
+      "baseReps": "12-15",
+      "restSeconds": 60,
+      "defaultRationale": "Places triceps long head under maximum stretch for complete upper-arm muscular symmetry."
+    },
+    {
+      "name": "Plank to Shoulder Taps",
+      "muscle": "Core / Anti-Rotation",
+      "equipment": "bodyweight",
+      "goals": ["weight_loss", "functional_fitness", "endurance"],
+      "baseSets": 3,
+      "baseReps": "30-45 sec",
+      "restSeconds": 45,
+      "defaultRationale": "Dynamic anti-rotational core stability challenge that protects the lumbar spine during daily movement."
+    },
+    {
+      "name": "Mountain Climbers",
+      "muscle": "Core / Cardiovascular",
+      "equipment": "bodyweight",
+      "goals": ["weight_loss", "endurance"],
+      "baseSets": 3,
+      "baseReps": "40 sec",
+      "restSeconds": 30,
+      "defaultRationale": "High-cadence core conditioning that maximizes cardiovascular output without requiring machines."
+    },
+    {
+      "name": "Resistance Band Face Pulls",
+      "muscle": "Rear Delts / Rotator Cuff",
+      "equipment": "resistance_bands",
+      "goals": ["muscle_gain", "functional_fitness", "endurance"],
+      "baseSets": 3,
+      "baseReps": "15-20",
+      "restSeconds": 60,
+      "defaultRationale": "Postural correction and rotator cuff health essential for long-term shoulder longevity."
+    }
+  ]
+}

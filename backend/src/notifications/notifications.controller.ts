@@ -15,13 +15,13 @@ export class NotificationsController {
   @ApiOperation({
     summary: 'List recent notifications visually distinguished by type (expert_reply, alert, confirmation)',
   })
-  getNotifications(@CurrentUser() user: AuthUser) {
-    return this.notificationsService.findAll(user.id);
+  async getNotifications(@CurrentUser() user: AuthUser) {
+    return await this.notificationsService.findAll(user.id);
   }
 
   @Patch(':id/read')
   @ApiOperation({ summary: 'Mark a notification as read' })
-  markAsRead(@Param('id') id: string) {
-    return this.notificationsService.markAsRead(id);
+  async markAsRead(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return await this.notificationsService.markAsRead(id, user.id);
   }
 }
