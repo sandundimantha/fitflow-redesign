@@ -1,0 +1,88 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id              String         @id @default(uuid())
+  firebaseUid     String         @unique
+  email           String?
+  phone           String?
+  displayName     String
+  avatarUrl       String?
+  fitnessGoal     String         @default("muscle_gain")
+  experienceLevel String         @default("intermediate")
+  weightKg        Float?
+  heightCm        Float?
+  language        String         @default("en")
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  workoutLogs     WorkoutLog[]
+  nutritionLogs   NutritionLog[]
+  aiPlans         AiWorkoutPlan[]
+}
+
+model Workout {
+  id                   String        @id @default(uuid())
+  title                String
+  category             String
+  durationMinutes      Int
+  difficulty           String
+  caloriesBurnEstimate Int
+  imageUrl             String?
+  description          String
+  isScheduledToday     Boolean       @default(false)
+  exercisesJson        String
+  createdAt            DateTime      @default(now())
+}
+
+model WorkoutLog {
+  id                String       @id @default(uuid())
+  userId            String
+  workoutId         String?
+  workoutTitle      String
+  category          String
+  durationMinutes   Int
+  caloriesBurned    Int
+  perceivedExertion Int?
+  notes             String?
+  completedAt       DateTime     @default(now())
+
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model NutritionLog {
+  id            String       @id @default(uuid())
+  userId        String
+  mealType      String
+  foodName      String
+  servingAmount Float
+  servingUnit   String
+  calories      Int
+  proteinGrams  Float
+  carbsGrams    Float
+  fatGrams      Float
+  loggedAt      DateTime     @default(now())
+
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AiWorkoutPlan {
+  id              String       @id @default(uuid())
+  userId          String
+  title           String
+  goal            String
+  experienceLevel String
+  durationWeeks   Int
+  daysPerWeek     Int
+  summary         String
+  routinesJson    String
+  createdAt       DateTime     @default(now())
+
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
