@@ -36,21 +36,31 @@ export class FirebaseAuthGuard implements CanActivate {
         this.firebaseInitialized = true;
         this.logger.log('Firebase Admin SDK initialized successfully');
       } catch (err) {
-        this.logger.warn(`Firebase Admin SDK init failed: ${err.message}. Running in fallback dev mode.`);
+        this.logger.warn(`Firebase Admin SDK init failed: ${err.message}.`);
       }
     }
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const authHeader = request.headers['authorization'] || '';
-    const devUserIdHeader = request.headers['x-dev-user-id'];
-    const devBypassEnabled = this.configService.get<boolean>('DEV_AUTH_BYPASS_ENABLED', true);
+    const headers = request.headers || {};
+    const authHeader = (headers['authorization'] as string) || '';
+    const devUserIdHeader = headers['x-dev-user-id'] as string | undefined;
 
-    // 1. Check Dev Auth Bypass
-    if (devBypassEnabled && (devUserIdHeader || authHeader.includes('dev-token') || !authHeader)) {
-      const userId = (devUserIdHeader as string) || this.configService.get<string>('DEV_USER_ID', 'usr_demo_777');
-      
+    const devBypassRaw = this.configService.get<any>('DEV_AUTH_BYPASS_ENABLED', false);
+    const devBypassEnabled = devBypassRaw === true || devBypassRaw === 'true';
+
+    // 1. Check Dev Auth Bypass (Opt-in only: requires devBypassEnabled AND an explicit dev signal)
+    // Never trigger on missing authHeader! An explicit dev signal is required.
+    const hasExplicitDevSignal =
+      (typeof devUserIdHeader === 'string' && devUserIdHeader.trim().length > 0) ||
+      (typeof authHeader === 'string' && authHeader.includes('dev-token'));
+
+    if (devBypassEnabled && hasExplicitDevSignal) {
+      const userId =
+        (devUserIdHeader && devUserIdHeader.trim()) ||
+        this.configService.get<string>('DEV_USER_ID', 'usr_demo_777');
+
       // Attempt to look up user or assign mock user
       let user = null;
       try {
@@ -68,24 +78,22 @@ export class FirebaseAuthGuard implements CanActivate {
       return true;
     }
 
-    // 2. Validate Firebase JWT
-    if (!authHeader.startsWith('Bearer ')) {
+    // 2. Validate Authorization header format - reject any request without a Bearer token
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       throw new UnauthorizedException('Missing or invalid Authorization header');
     }
 
-    const token = authHeader.split('Bearer ')[1];
-
-    if (!this.firebaseInitialized) {
-      // If live Firebase credentials are not yet populated, support dev token
-      request.user = {
-        id: 'usr_demo_777',
-        firebaseUid: 'firebase_usr_demo_777',
-        email: 'demo@fitflow.app',
-        displayName: 'Alex Morgan',
-      };
-      return true;
+    const token = authHeader.split('Bearer ')[1]?.trim();
+    if (!token) {
+      throw new UnauthorizedException('Missing or invalid Authorization header');
     }
 
+    // 3. Fail closed if Firebase is not properly initialized
+    if (!this.firebaseInitialized) {
+      throw new UnauthorizedException('Authentication is not configured correctly');
+    }
+
+    // 4. Verify Firebase JWT
     try {
       const decodedToken = await admin.auth().verifyIdToken(token);
       let user = await this.prisma.user.findUnique({
@@ -99,7 +107,10 @@ export class FirebaseAuthGuard implements CanActivate {
             firebaseUid: decodedToken.uid,
             email: decodedToken.email || null,
             phone: decodedToken.phone_number || null,
-            displayName: decodedToken.name || decodedToken.email?.split('@')[0] || 'FitFlow Athlete',
+            displayName:
+              decodedToken.name ||
+              decodedToken.email?.split('@')[0] ||
+              'FitFlow Athlete',
             avatarUrl: decodedToken.picture || null,
           },
         });
@@ -114,7 +125,9 @@ export class FirebaseAuthGuard implements CanActivate {
       return true;
     } catch (err) {
       this.logger.error(`Token verification failed: ${err.message}`);
-      throw new UnauthorizedException('Invalid or expired Firebase authentication token');
+      throw new UnauthorizedException(
+        'Invalid or expired Firebase authentication token',
+      );
     }
   }
 }

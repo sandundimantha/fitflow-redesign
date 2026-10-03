@@ -150,7 +150,7 @@ flutter run
 
 | Test Suite | Framework | Scope |
 | :--- | :--- | :--- |
-| **Backend Unit Tests** | Jest (`npm test`) | Validates today's scheduled workout retrieval, weekly comparison calculation, and workout log editing. |
+| **Backend Unit Tests** | Jest (`npm test`) | Validates today's scheduled workout retrieval, weekly comparison calculation, log editing, and auth guard fail-closed / bypass security scenarios. |
 | **AI Service Unit Tests**| Pytest (`pytest`) | Validates goal/equipment matching, exercise volume adjustment, and 1-line rationale synthesis. |
 | **Frontend Widget Tests**| Flutter Test (`flutter test`) | Validates above-the-fold scheduled workout rendering, 2-tap navigation rule, and tab switching. |
 
@@ -159,5 +159,6 @@ flutter run
 ## 🔒 Security & Privacy
 
 1. **Authentication:** Bearer token authentication verified via Firebase Admin SDK.
-2. **Development Bypass Mode:** When `DEV_AUTH_BYPASS_ENABLED=true`, developers can supply `x-dev-user-id` to test authenticated routes without needing active Google Cloud console credentials.
-3. **Data Sovereignty:** Privacy policy screen available in the app under Account Settings detailing biometric encryption and GDPR data export compliance.
+2. **Fail-Closed Security Posture:** Missing or invalid credentials, or an uninitialized Firebase Admin SDK, always fail closed with `401 Unauthorized`. Access is never granted silently.
+3. **Development Bypass Mode (Opt-In Only):** Disabled by default (`DEV_AUTH_BYPASS_ENABLED=false` in `.env.example`). Even when enabled, bypass strictly requires an explicit request signal (such as the `x-dev-user-id` header). A request with a missing or empty Authorization header is never treated as authenticated.
+4. **Data Sovereignty:** Privacy policy screen available in the app under Account Settings detailing biometric encryption and GDPR data export compliance.
