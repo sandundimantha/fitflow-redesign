@@ -1,29 +1,117 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fitflow_app/main.dart';
-import 'package:fitflow_app/screens/main_navigation_screen.dart';
+
+// 1x1 transparent pixel png for headless test network images
+final List<int> _kTransparentImage = base64Decode(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+);
+
+class _TestHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return _TestHttpClient();
+  }
+}
+
+class _TestHttpClient implements HttpClient {
+  @override
+  bool autoUncompress = true;
+  @override
+  Duration? connectionTimeout;
+  @override
+  Duration idleTimeout = const Duration(seconds: 15);
+  @override
+  int? maxConnectionsPerHost;
+  @override
+  String? userAgent;
+
+  @override
+  void close({bool force = false}) {}
+  @override
+  Future<HttpClientRequest> getUrl(Uri url) async => _TestHttpClientRequest();
+  @override
+  Future<HttpClientRequest> openUrl(String method, Uri url) async => _TestHttpClientRequest();
+  @override
+  Future<HttpClientRequest> postUrl(Uri url) async => _TestHttpClientRequest();
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _TestHttpClientRequest implements HttpClientRequest {
+  @override
+  final HttpHeaders headers = _TestHttpHeaders();
+
+  @override
+  Future<HttpClientResponse> close() async => _TestHttpClientResponse();
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _TestHttpHeaders implements HttpHeaders {
+  @override
+  void add(String name, Object value, {bool preserveHeaderCase = false}) {}
+  @override
+  void set(String name, Object value, {bool preserveHeaderCase = false}) {}
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _TestHttpClientResponse extends Stream<List<int>> implements HttpClientResponse {
+  @override
+  int get statusCode => 200;
+  @override
+  int get contentLength => _kTransparentImage.length;
+  @override
+  HttpClientResponseCompressionState get compressionState => HttpClientResponseCompressionState.notCompressed;
+  @override
+  final HttpHeaders headers = _TestHttpHeaders();
+
+  @override
+  StreamSubscription<List<int>> listen(
+    void Function(List<int> event)? onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError,
+  }) {
+    return Stream<List<int>>.fromIterable([_kTransparentImage]).listen(
+      onData,
+      onError: onError,
+      onDone: onDone,
+      cancelOnError: cancelOnError,
+    );
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 void main() {
+  setUpAll(() {
+    HttpOverrides.global = _TestHttpOverrides();
+  });
+
   testWidgets('FitFlow app launches and displays Dashboard with Today Scheduled Workout above the fold', (WidgetTester tester) async {
-    // Build the app inside a ProviderScope
     await tester.pumpWidget(
       const ProviderScope(
         child: FitFlowApp(),
       ),
     );
 
-    // Initial pump
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
 
-    // Verify App Bar Title
+    // Verify Brand
     expect(find.text('FitFlow'), findsOneWidget);
 
-    // Verify Today's Scheduled Workout heading is rendered above the fold
+    // Verify Today's Scheduled Workout heading
     expect(find.text("TODAY'S SCHEDULED WORKOUT"), findsOneWidget);
 
-    // Verify Quick Actions exist
+    // Verify Quick Actions
     expect(find.text('Workout History'), findsOneWidget);
     expect(find.text('Progress Chart'), findsOneWidget);
     expect(find.text('Nutrition Tracker'), findsOneWidget);
@@ -44,12 +132,13 @@ void main() {
       ),
     );
 
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
 
-    // Tap on AI Plan in bottom nav (1 tap)
+    // Tap on AI Plan tab
     await tester.tap(find.text('AI Plan'));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
 
     // Verify AI Workout Architect screen appears
     expect(find.text('AI Workout Architect'), findsOneWidget);
