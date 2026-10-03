@@ -1,0 +1,59 @@
+# Gitignore for FitFlow Redesign
+
+# OS and IDE files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Node / NestJS
+backend/node_modules/
+backend/dist/
+backend/coverage/
+backend/*.log
+backend/npm-debug.log*
+backend/yarn-debug.log*
+backend/yarn-error.log*
+backend/.turbo
+
+# Python / FastAPI
+ai-service/__pycache__/
+ai-service/*/__pycache__/
+ai-service/*.py[cod]
+ai-service/*$py.class
+ai-service/.pytest_cache/
+ai-service/venv/
+ai-service/.venv/
+ai-service/env/
+ai-service/ENV/
+ai-service/*.egg-info/
+ai-service/.coverage
+ai-service/htmlcov/
+
+# Flutter / Dart
+frontend/.dart_tool/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/.packages
+frontend/build/
+frontend/ios/Flutter/Generated.xcconfig
+frontend/ios/Flutter/flutter_export_environment.sh
+frontend/ios/Flutter/App.framework
+frontend/ios/Flutter/Flutter.framework
+frontend/ios/Flutter/Flutter.podspec
+frontend/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+frontend/*.iml
+frontend/.idea/
+frontend/pubspec.lock
+
+# Docker volumes / local data
+data/
+minio_data/
