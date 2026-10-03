@@ -4,10 +4,14 @@ import 'theme/app_theme.dart';
 import 'screens/auth_screen.dart';
 import 'screens/main_navigation_screen.dart';
 import 'services/socket_service.dart';
+import 'services/crashlytics_service.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  // Initialize Crashlytics crash reporting and error handlers
+  await CrashlyticsService.instance.initialize();
+
   // Initialize WebSocket client for live social feed events
   SocketService().connect();
 

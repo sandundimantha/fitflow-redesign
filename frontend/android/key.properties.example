@@ -1,0 +1,4 @@
+storePassword=fitflow2026
+keyPassword=fitflow2026
+keyAlias=upload
+storeFile=upload-keystore.jks
